@@ -4,141 +4,286 @@ from langchain_community.llms import Ollama
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
+from langchain.chains import LLMChain
+from langchain.docstore.document import Document
 import os
 from dotenv import load_dotenv
+import tempfile
+from typing import List, Dict
+import json
 
+# Load environment variables
 load_dotenv()
 
 os.environ["LANGCHAIN_API_KEY"] = "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"
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Custom_Resume_With_GenAI"
 
-def create_resume_prompt(job_description, current_resume):
+def create_resume_prompt() -> ChatPromptTemplate:
+    """
+    Creates an enhanced resume optimization prompt template with improved ATS optimization
+    and professional language patterns.
+    """
     return ChatPromptTemplate.from_messages([
-        ('system', """You are ResumeGPT, a specialized AI expert in resume optimization and ATS (Applicant Tracking System) algorithms with over 15 years of experience in professional resume writing and recruitment. Your task is to analyze both the provided job description and the candidate's current resume to create a highly targeted, ATS-optimized resume that maximizes the candidate's chances of getting shortlisted.
+        ('system', """You are CareerForge AI, an elite resume optimization specialist combining 15+ years of expertise in executive recruiting, ATS systems, and professional writing. Your mission is to transform resumes into compelling professional narratives that achieve maximum ATS scores while highlighting candidates' true potential.
 
-        Core Directives:
+        Core Optimization Framework:
 
-        1. Achievement Format:
-        - Transform all experience bullet points into the Harvard achievement format: "Implemented [Action] to address [Challenge/Situation], resulting in [Quantifiable Outcome]"
-        - Always prioritize quantifiable metrics (%, $, time saved, efficiency gains)
-        - Use active voice and strong action verbs at the start of each bullet point
+        1. Enhanced Achievement Format:
+        - Transform experiences using the STAR+Impact method:
+          "[Strategic Action Verb] [Specific Task/Challenge] through [Approach/Action], generating [Quantified Results + Business Impact]"
+        - Prioritize metrics: ROI, revenue impact, efficiency gains, cost savings, user growth
+        - Lead with premium action verbs categorized by achievement type:
+          • Leadership: Spearheaded, Orchestrated, Championed, Pioneered
+          • Innovation: Transformed, Revolutionized, Engineered, Optimized
+          • Analysis: Synthesized, Formulated, Diagnosed, Evaluated
+          • Technical: Architected, Implemented, Automated, Deployed
+          • Growth: Accelerated, Maximized, Scaled, Generated
+          • Collaboration: Fostered, Mobilized, Mentored, Facilitated
 
-        2. ATS Optimization:
-        - Extract key skills and requirements from the job description
-        - Naturally incorporate exact keyword matches from the job description into the resume
-        - Use standard section headings: "Professional Experience," "Education," "Skills," "Projects"
-        - Avoid tables, columns, or complex formatting that could confuse ATS systems
-        - Keep font and formatting simple and consistent
+        2. Advanced ATS Optimization:
+        - Implement intelligent keyword matching:
+          • Primary keywords in first 2 bullets of each role
+          • Include both full terms and acronyms (e.g., "Artificial Intelligence (AI)")
+          • Match exact phrases from job description
+        - Use ATS-optimized section headers:
+          • Professional Experience
+          • Technical Expertise
+          • Education & Certifications
+          • Notable Projects
+        - Maintain clean, ATS-friendly formatting
+        - Strategic keyword density of 3-5% per section
 
-        3. Content Guidelines:
-        - Focus on relevant experiences that directly align with the job requirements
-        - Limit bullet points to 2-3 per role, prioritizing the most impactful achievements
-        - Include technical skills and tools specifically mentioned in the job description
-        - Maintain chronological order within sections
-        - Keep total length to 1-2 pages maximum
-
-        4. Writing Style:
-        - Be concise and specific, avoiding fluff or generic statements
-        - Use industry-standard terminology
-        - Maintain professional tone throughout
-        - Eliminate personal pronouns
-        - Use present tense for current roles, past tense for previous positions
-
-        5. Structure:
+        3. Enhanced Content Structure:
         ```
         [Full Name]
         [Phone] | [Professional Email] | [Location] | [LinkedIn]
 
         Professional Summary
-        [3-4 lines highlighting key qualifications matching job requirements]
+        [Achievement-focused overview aligning experience with role requirements]
+        [Key metrics and recognized expertise]
+        [Forward-looking statement tied to target role]
 
         Professional Experience
-        [Company Name] | [Location]
-        [Title] | [Dates]
-        • Implemented [X] to address [Y], resulting in [Z]
-        • [Additional achievements in Harvard format]
+        [Company Name] | [Location] | [Industry/Scale indicator]
+        [Title with Keywords] | [MM/YYYY - MM/YYYY]
+        • [STAR+Impact achievement with primary keywords]
+        • [Technical implementation with quantified results]
+        • [Leadership/Innovation achievement with business impact]
 
-        Education
-        [Degree] in [Field]
-        [University Name] | [Graduation Date]
-        [Relevant Coursework/Honors if applicable]
+        Technical Expertise
+        [Categorized skills matching job requirements]
+        • Core Technologies: [Primary technical skills]
+        • Frameworks & Tools: [Relevant platforms/tools]
+        • Methodologies: [Processes/approaches]
 
-        Technical Skills
-        [Skills directly relevant to job description, categorized]
+        Education & Certifications
+        [Degree] in [Field aligned with role]
+        [Institution] | [Graduation Date]
+        [Relevant specialized training/certifications]
 
-        Projects (if applicable)
-        [Project Name]
-        • [Achievement-focused description]
+        Notable Projects
+        [Project Name aligned with job requirements]
+        • [Technical achievement with measurable impact]
+        • [Implementation details with business value]
         ```
 
-        Process Instructions:
-        1. First, analyze the job description to identify:
-        - Required skills and qualifications
-        - Key responsibilities
-        - Industry-specific keywords
-        - Company values and culture indicators
+        4. Professional Language Enhancement:
+        - Replace weak phrases with powerful alternatives:
+          • "Responsible for" → "Directed"
+          • "Helped with" → "Orchestrated"
+          • "Worked on" → "Spearheaded"
+        - Use industry-specific terminology from job description
+        - Maintain authoritative tone throughout
 
-        2. Then, review the current resume to identify:
-        - Transferable skills and experiences
-        - Quantifiable achievements
-        - Areas that align with job requirements
+        5. Quantification Framework:
+        Transform achievements into metrics:
+        - Percentages: Efficiency, growth, accuracy
+        - Scale: Team size, user base, geographic reach
+        - Time: Delivery speed, frequency, optimization
+        - Value: Revenue, savings, ROI
 
-        3. Create the optimized resume by:
-        - Reorganizing content to prioritize relevant experience
-        - Rewriting bullets in Harvard achievement format
-        - Incorporating identified keywords naturally
-        - Ensuring all claims are substantiated and specific
+        Process Execution:
+        1. Job Analysis:
+        - Extract core requirements and keywords
+        - Identify culture indicators and values
+        - Map technical requirements
 
-        Response Format:
-        Provide the optimized resume in clear, ATS-friendly format with each section clearly delineated. Include a brief summary of optimization changes made and ATS score improvements at the end of the resume.
+        2. Resume Enhancement:
+        - Upgrade achievements using STAR+Impact
+        - Integrate keywords strategically
+        - Amplify leadership and innovation
+        - Ensure truthful representation
 
-        Remember: Focus on creating a compelling narrative that demonstrates the candidate's direct impact while maintaining absolute truthfulness to the original resume's content. Do not fabricate or exaggerate achievements."""),
+        Output Requirements:
+        1. Deliver ATS-optimized resume with:
+        - Keyword-rich, achievement-focused content
+        - Clean, consistent formatting
+        - Strategic section ordering
+        - Quantified impacts
+
+        2. Provide optimization summary:
+        - Keyword match rate
+        - ATS compatibility score
+        - Key improvements made
+        - Interview talking points
+
+        Remember: Focus on authentic achievements while maximizing ATS compatibility and professional impact."""),
         ('user', "Given the job description: {job_description} and the current resume: {current_resume}, generate an optimized resume.")
     ])
 
-def generate_resume(job_description, current_resume):
-    llm = Ollama(model="llama3.2")
-    output_parser = StrOutputParser()
-    prompt = create_resume_prompt(job_description, current_resume)
-    chain = prompt | llm | output_parser
-    response = chain.invoke({"job_description": job_description, "current_resume": current_resume})
-    return response
+def extract_resume_text(docs: List[Document]) -> str:
+    """
+    Extracts and combines text from document chunks into a single string.
+    """
+    return "\n".join([doc.page_content for doc in docs])
+
+def analyze_keywords(job_description: str, resume_text: str) -> Dict:
+    """
+    Analyzes keyword matching between job description and resume.
+    """
+    # Convert texts to lowercase for comparison
+    job_desc_lower = job_description.lower()
+    resume_lower = resume_text.lower()
+    
+    # Extract significant words from job description
+    job_keywords = set([word.strip() for word in job_desc_lower.split() 
+                       if len(word.strip()) > 3])  # Ignore small words
+    
+    # Count matches
+    matches = sum(1 for keyword in job_keywords 
+                 if keyword in resume_lower)
+    
+    return {
+        "total_keywords": len(job_keywords),
+        "matched_keywords": matches,
+        "match_percentage": round((matches / len(job_keywords)) * 100 if job_keywords else 0, 2)
+    }
+
+def generate_resume(job_description: str, current_resume: List[Document], llm: Ollama) -> tuple:
+    """
+    Generates an optimized resume and provides analysis metrics.
+    """
+    # Extract text from resume documents
+    resume_text = extract_resume_text(current_resume)
+    
+    # Create and execute the optimization chain
+    prompt = create_resume_prompt()
+    chain = LLMChain(llm=llm, prompt=prompt)
+    
+    # Generate optimized resume
+    response = chain.run(job_description=job_description, 
+                        current_resume=resume_text)
+    
+    # Analyze keyword matching
+    keyword_analysis = analyze_keywords(job_description, response)
+    
+    return response, keyword_analysis
 
 def app():
-    st.set_page_config(page_title="Custom Resume Generator")
-    st.title("Custom Resume Generator")
+    st.set_page_config(
+        page_title="Advanced Resume Optimizer",
+        page_icon="📄",
+        layout="wide"
+    )
+    
+    st.title("🚀 Advanced Resume Optimizer")
+    st.markdown("""
+    This tool uses AI to create ATS-optimized resumes tailored to specific job descriptions.
+    Upload your current resume and paste the job description to get started.
+    """)
 
-    job_description = st.text_area("Job Description", height=200)
-    uploaded_file = st.file_uploader("Upload Current Resume (PDF)", type="pdf")
+    with st.container():
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            job_description = st.text_area(
+                "Job Description",
+                height=300,
+                placeholder="Paste the job description here..."
+            )
+            
+        with col2:
+            uploaded_file = st.file_uploader(
+                "Upload Current Resume (PDF)",
+                type="pdf",
+                help="Upload your current resume in PDF format"
+            )
 
     if job_description and uploaded_file:
-        with st.spinner("Generating optimized resume..."):
-            # Save uploaded PDF to a temporary file
-            temppdf = "./temp.pdf"
-            with open(temppdf, "wb") as file:
-                file.write(uploaded_file.getvalue())
+        try:
+            with st.spinner("🔄 Analyzing and optimizing your resume..."):
+                # Create temporary file for PDF processing
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+                    tmp_file.write(uploaded_file.getvalue())
+                    tmp_path = tmp_file.name
 
-            # Load documents using PyPDFLoader
-            loader = PyPDFLoader(temppdf)
-            docs = loader.load()
+                # Load and process PDF
+                loader = PyPDFLoader(tmp_path)
+                docs = loader.load()
 
-            # Use 'docs' directly without wrapping into a single Document
-            current_resume = docs
+                # Split documents
+                text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_size=1000,
+                    chunk_overlap=100,
+                    separators=["\n\n", "\n", " ", ""]
+                )
+                split_docs = text_splitter.split_documents(documents=docs)
 
-            # Split documents into chunks
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-            split = text_splitter.split_documents(documents=current_resume)
+                if split_docs:
+                    # Initialize LLM
+                    llm = Ollama(model="llama3.2")
+                    
+                    # Generate optimized resume and analysis
+                    optimized_resume, keyword_analysis = generate_resume(
+                        job_description, split_docs, llm
+                    )
 
-            if split:
-                optimized_resume = generate_resume(job_description, split)
-                st.success("Resume optimization complete!")
-                st.write(optimized_resume)
-            else:
-                st.error("Error: Could not extract text from the uploaded resume.")
+                    # Display results
+                    st.success("✅ Resume optimization complete!")
+                    
+                    # Display metrics
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric(
+                            "Keyword Match Rate",
+                            f"{keyword_analysis['match_percentage']}%"
+                        )
+                    with col2:
+                        st.metric(
+                            "Keywords Matched",
+                            keyword_analysis['matched_keywords']
+                        )
+                    with col3:
+                        st.metric(
+                            "Total Job Keywords",
+                            keyword_analysis['total_keywords']
+                        )
+
+                    # Display optimized resume
+                    st.markdown("### 📄 Optimized Resume")
+                    st.markdown(optimized_resume)
+
+                    # Download button
+                    st.download_button(
+                        "📥 Download Optimized Resume",
+                        optimized_resume,
+                        file_name="optimized_resume.txt",
+                        mime="text/plain"
+                    )
+
+                else:
+                    st.error("❌ Could not extract text from the uploaded resume.")
+
+                # Cleanup temporary file
+                os.unlink(tmp_path)
+
+        except Exception as e:
+            st.error(f"❌ An error occurred: {str(e)}")
+            st.info("Please try again with a different PDF file or check the job description format.")
+
     else:
-        st.warning("Please provide the job description and upload the current resume.")
+        st.info("👆 Please provide both the job description and your current resume to begin optimization.")
 
 if __name__ == "__main__":
     app()
