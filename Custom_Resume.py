@@ -41,10 +41,8 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
         Generate the requested keywords.""")
     ])
     
-    # Create chain for keyword suggestion
     keyword_chain = LLMChain(llm=llm, prompt=keyword_prompt)
     
-    # Get suggested keywords
     response = keyword_chain.run(
         job_description=job_description,
         resume_text=resume_text
@@ -63,7 +61,6 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
                 additional_keywords_section = section
         
         if not top_keywords_section or not additional_keywords_section:
-            # Fallback values if parsing fails
             return {
                 "original_total_keywords": 0,
                 "original_matched_keywords": 0,
