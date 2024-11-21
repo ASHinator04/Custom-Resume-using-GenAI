@@ -1,32 +1,20 @@
-name: Sync to Hugging Face Hub
-
+name: Sync to Hugging Face hub
 on:
   push:
     branches: [main]
 
-  # To run this workflow manually from the Actions tab
+  # to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Ensure full history is fetched to avoid shallow clone issues
-          lfs: true  # Fetch LFS objects if any exist
-
-      - name: Pull latest changes from Hugging Face Hub
+          fetch-depth: 0
+          lfs: true
+      - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          git remote add huggingface https://AAkshatSharmaa:$HF_TOKEN@huggingface.co/spaces/AAkshatSharmaa/customizeyourresume
-          git fetch huggingface main
-          git merge huggingface/main --no-edit || true
-
-      - name: Push to Hugging Face Hub
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          git push huggingface main
+        run: git push https://AAkshatSharmaa:$HF_TOKEN@huggingface.co/spaces/AAkshatSharmaa/customizeyourresume main
