@@ -18,7 +18,7 @@ load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Custom_Resume_With_GenAI"
 
-st.secrets["LANGCHAIN_API_KEY"] = "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"
+st.secrets["LANGCHAIN_API_KEY"]
 
 def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ollama) -> Dict:
     """
