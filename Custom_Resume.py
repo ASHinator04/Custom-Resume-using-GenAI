@@ -12,7 +12,6 @@ import tempfile
 from typing import List, Dict
 import json
 
-# Load environment variables
 load_dotenv()
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -24,7 +23,6 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
     """
     Analyzes existing keywords and suggests additional relevant ones.
     """
-    # Create prompt for keyword suggestion
     keyword_prompt = ChatPromptTemplate.from_messages([
         ('system', """You are a technical keyword optimization specialist. 
         Analyze the job description and current resume, then provide two lists:
@@ -53,10 +51,8 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
     )
     
     try:
-        # Split the response into sections
         sections = response.strip().split('\n\n')
         
-        # Find the sections with our keywords
         top_keywords_section = None
         additional_keywords_section = None
         
@@ -76,11 +72,9 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
                 "additional_10_keywords": ["Error parsing keywords"]
             }
         
-        # Extract and clean the keywords
         top_22_keywords = top_keywords_section.split(':', 1)[1].strip().split(', ')
         additional_10_keywords = additional_keywords_section.split(':', 1)[1].strip().split(', ')
         
-        # Original keyword analysis
         job_desc_lower = job_description.lower()
         resume_lower = resume_text.lower()
         job_keywords = set([word.strip() for word in job_desc_lower.split() 
@@ -98,7 +92,6 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
         }
         
     except Exception as e:
-        # Fallback values if any error occurs
         return {
             "original_total_keywords": 0,
             "original_matched_keywords": 0,
@@ -235,15 +228,12 @@ def analyze_keywords(job_description: str, resume_text: str) -> Dict:
     """
     Analyzes keyword matching between job description and resume.
     """
-    # Convert texts to lowercase for comparison
     job_desc_lower = job_description.lower()
     resume_lower = resume_text.lower()
     
-    # Extract significant words from job description
     job_keywords = set([word.strip() for word in job_desc_lower.split() 
-                       if len(word.strip()) > 3])  # Ignore small words
+                       if len(word.strip()) > 3]) 
     
-    # Count matches
     matches = sum(1 for keyword in job_keywords 
                  if keyword in resume_lower)
     
@@ -308,27 +298,21 @@ def generate_resume(job_description: str, current_resume: List[Document], llm: O
     """
     Generates an optimized resume with additional relevant keywords and provides analysis metrics.
     """
-    # Extract text from resume documents
     resume_text = extract_resume_text(current_resume)
     
-    # Get keyword analysis and suggestions
     keyword_analysis = extract_and_suggest_keywords(job_description, resume_text, llm)
     
-    # Create and execute the optimization chain
     prompt = create_resume_prompt()
     chain = LLMChain(llm=llm, prompt=prompt)
     
-    # Generate optimized resume
     response = chain.run(
         job_description=job_description,
         current_resume=resume_text,
         suggested_keywords=", ".join(keyword_analysis["top_22_keywords"] + keyword_analysis["additional_10_keywords"])
     )
     
-    # Analyze final keyword matching
     final_analysis = analyze_keywords(job_description, response)
     
-    # Combine analyses
     combined_analysis = {
         "original_metrics": {
             "total_keywords": keyword_analysis["original_total_keywords"],
@@ -375,18 +359,14 @@ def app():
     if job_description and uploaded_file:
         try:
             with st.spinner("🔄 Analyzing and optimizing your resume..."):
-                # [Previous resume generation code remains the same until after displaying the download button]
-                
-                # Create temporary file for PDF processing
+               
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
                     tmp_file.write(uploaded_file.getvalue())
                     tmp_path = tmp_file.name
 
-                # Load and process PDF
                 loader = PyPDFLoader(tmp_path)
                 docs = loader.load()
 
-                # Split documents
                 text_splitter = RecursiveCharacterTextSplitter(
                     chunk_size=1000,
                     chunk_overlap=100,
@@ -395,18 +375,15 @@ def app():
                 split_docs = text_splitter.split_documents(documents=docs)
 
                 if split_docs:
-                    # Initialize LLM
+                   
                     llm = Ollama(model="llama3.2")
                     
-                    # Generate optimized resume and analysis
                     optimized_resume, combined_analysis = generate_resume(
                         job_description, split_docs, llm
                     )
 
-                    # Display results
                     st.success("✅ Resume optimization complete!")
                     
-                    # Display metrics
                     st.markdown("### 📊 Optimization Metrics")
                     
                     col1, col2 = st.columns(2)
@@ -433,19 +410,15 @@ def app():
                             combined_analysis['final_metrics']['matched_keywords']
                         )
                     
-                    # Display top 22 keywords from job description
                     st.markdown("### 🔑 Top 22 Keywords from Job Description")
                     st.write(", ".join(combined_analysis["top_22_keywords"]))
                     
-                    # Display additional 10 suggested keywords
                     st.markdown("### 🌟 Additional 10 Suggested Keywords")
                     st.write(", ".join(combined_analysis["additional_10_keywords"]))
                     
-                    # Display optimized resume
                     st.markdown("### 📄 Optimized Resume")
                     st.markdown(optimized_resume)
 
-                    # Download button for resume
                     st.download_button(
                         "📥 Download Optimized Resume",
                         optimized_resume,
@@ -453,7 +426,6 @@ def app():
                         mime="text/plain"
                     )
 
-                    # Add cover letter section
                     st.markdown("### 📝 Cover Letter Generation")
                     generate_cover = st.checkbox("Would you like to generate a matching cover letter?")
                     
@@ -468,7 +440,6 @@ def app():
                             st.markdown("### 📋 Generated Cover Letter")
                             st.markdown(cover_letter)
                             
-                            # Download button for cover letter
                             st.download_button(
                                 "📥 Download Cover Letter",
                                 cover_letter,
@@ -479,7 +450,6 @@ def app():
                 else:
                     st.error("❌ Could not extract text from the uploaded resume.")
 
-                # Cleanup temporary file
                 os.unlink(tmp_path)
 
         except Exception as e:
