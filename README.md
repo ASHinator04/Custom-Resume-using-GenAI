@@ -16,7 +16,7 @@ An advanced resume optimization tool that uses AI to create ATS-optimized resume
 - Python 3.x
 - Streamlit
 - LangChain
-- Ollama (LLama2)
+- Ollama (LLama3.2)
 - PyPDF2
 - python-dotenv
 
