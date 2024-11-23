@@ -14,7 +14,13 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+          
+      - name: Add remote
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: git remote add spcae https://AAkshatSharmaa:$HF_TOKEN@huggingface.co/spaces/AAkshatSharmaa/customizeyourresume
+
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push -f -u https://AAkshatSharmaa:$HF_TOKEN@huggingface.co/spaces/AAkshatSharmaa/customizeyourresume main
+        run: git push --force https://AAkshatSharmaa:$HF_TOKEN@huggingface.co/spaces/AAkshatSharmaa/customizeyourresume main
