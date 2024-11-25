@@ -25,8 +25,9 @@ load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Custom_Resume_With_GenAI"
 os.environ["LANGCHAIN_API_KEY"] = "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"
-os.environ["GROQ_API_KEY"] = "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"
 
+GROQ_API_KEY = st.text_input(label='Enter GROQ_API_KEY here', type='password')
+os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
 
 def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: ChatGroq) -> Dict:
@@ -320,6 +321,8 @@ st.markdown("""
 This tool uses AI to create ATS-optimized resumes tailored to specific job descriptions.
 Upload your current resume and paste the job description to get started.
 """)
+
+
 
 with st.container():
     col1, col2 = st.columns(2)
