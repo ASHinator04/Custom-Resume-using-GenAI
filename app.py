@@ -1,4 +1,8 @@
 import streamlit as st
+import os
+from dotenv import load_dotenv
+import tempfile
+from typing import List, Dict
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.llms import Ollama
 from langchain_core.output_parsers import StrOutputParser
@@ -6,18 +10,21 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import LLMChain
 from langchain.docstore.document import Document
-import os
-from dotenv import load_dotenv
-import tempfile
-from typing import List, Dict
 import json
 
+# Set page config as the first Streamlit command
+st.set_page_config(
+    page_title="Advanced Resume Optimizer",
+    page_icon="📄",
+    layout="wide"
+)
+
+# Load environment variables
 load_dotenv()
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Custom_Resume_With_GenAI"
-
-os.environ["LANGCHAIN_API_KEY"] == "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"
+os.environ["LANGCHAIN_API_KEY"] = "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"
 
 def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ollama) -> Dict:
     """
@@ -28,11 +35,9 @@ def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ol
         Analyze the job description and current resume, then provide two lists:
         1. The top 22 most important technical keywords present in the job description but missing from the resume
         2. 10 additional highly relevant keywords based on industry standards and common requirements
-
         Format your response EXACTLY as follows (including the exact headings):
         Top 22 Keywords:
         keyword1, keyword2, keyword3, keyword4, keyword5, keyword6, keyword7, keyword8, keyword9, keyword10, keyword11, keyword12, keyword13, keyword14, keyword15, keyword16, keyword17, keyword18, keyword19, keyword20, keyword21, keyword22
-
         Additional 10 Keywords:
         keyword1, keyword2, keyword3, keyword4, keyword5, keyword6, keyword7, keyword8, keyword9, keyword10"""),
         ('user', """Job Description: {job_description}
@@ -104,9 +109,7 @@ def create_resume_prompt() -> ChatPromptTemplate:
     """
     return ChatPromptTemplate.from_messages([
         ('system', """You are CareerForge AI, an elite resume optimization specialist combining 15+ years of expertise in executive recruiting, ATS systems, and professional writing. Your mission is to transform resumes into compelling professional narratives that achieve maximum ATS scores while highlighting candidates' true potential.
-
         Core Optimization Framework:
-
         1. Enhanced Achievement Format:
         - Transform experiences using the STAR+Impact method:
           "[Strategic Action Verb] [Specific Task/Challenge] through [Approach/Action], generating [Quantified Results + Business Impact]"
@@ -118,7 +121,6 @@ def create_resume_prompt() -> ChatPromptTemplate:
           • Technical: Architected, Implemented, Automated, Deployed
           • Growth: Accelerated, Maximized, Scaled, Generated
           • Collaboration: Fostered, Mobilized, Mentored, Facilitated
-
         2. Advanced ATS Optimization:
         - Implement intelligent keyword matching:
           • Primary keywords in first 2 bullets of each role
@@ -131,41 +133,34 @@ def create_resume_prompt() -> ChatPromptTemplate:
           • Notable Projects
         - Maintain clean, ATS-friendly formatting
         - Strategic keyword density of 3-5% per section
-
         3. Enhanced Content Structure:
         ```
         [Full Name]
         [Phone] | [Professional Email] | [Location] | [LinkedIn]
-
         Professional Summary
         [Achievement-focused overview aligning experience with role requirements]
         [Key metrics and recognized expertise]
         [Forward-looking statement tied to target role]
-
         Professional Experience
         [Company Name] | [Location] | [Industry/Scale indicator]
         [Title with Keywords] | [MM/YYYY - MM/YYYY]
         • [STAR+Impact achievement with primary keywords]
         • [Technical implementation with quantified results]
         • [Leadership/Innovation achievement with business impact]
-
         Technical Expertise
         [Categorized skills matching job requirements]
         • Core Technologies: [Primary technical skills]
         • Frameworks & Tools: [Relevant platforms/tools]
         • Methodologies: [Processes/approaches]
-
         Education & Certifications
         [Degree] in [Field aligned with role]
         [Institution] | [Graduation Date]
         [Relevant specialized training/certifications]
-
         Notable Projects
         [Project Name aligned with job requirements]
         • [Technical achievement with measurable impact]
         • [Implementation details with business value]
         ```
-
         4. Professional Language Enhancement:
         - Replace weak phrases with powerful alternatives:
           • "Responsible for" → "Directed"
@@ -173,44 +168,37 @@ def create_resume_prompt() -> ChatPromptTemplate:
           • "Worked on" → "Spearheaded"
         - Use industry-specific terminology from job description
         - Maintain authoritative tone throughout
-
         5. Quantification Framework:
         Transform achievements into metrics:
         - Percentages: Efficiency, growth, accuracy
         - Scale: Team size, user base, geographic reach
         - Time: Delivery speed, frequency, optimization
         - Value: Revenue, savings, ROI
-
         Process Execution:
         1. Job Analysis:
         - Extract core requirements and keywords
         - Identify culture indicators and values
         - Map technical requirements
-
         2. Resume Enhancement:
         - Upgrade achievements using STAR+Impact
         - Integrate keywords strategically
         - Amplify leadership and innovation
         - Ensure truthful representation
-
         IMPORTANT: Include and naturally incorporate the following additional keywords into the optimized resume:
         {suggested_keywords}
         
         Ensure these keywords are integrated naturally and relevantly into the resume content.
-
         Output Requirements:
         1. Deliver ATS-optimized resume with:
         - Keyword-rich, achievement-focused content
         - Clean, consistent formatting
         - Strategic section ordering
         - Quantified impacts
-
         2. Provide optimization summary:
         - Keyword match rate
         - ATS compatibility score
         - Key improvements made
         - Interview talking points
-
         Remember: Focus on authentic achievements while maximizing ATS compatibility and professional impact."""),
         ('user', "Given the job description: {job_description} and the current resume: {current_resume}, generate an optimized resume.")
     ])
@@ -239,7 +227,6 @@ def analyze_keywords(job_description: str, resume_text: str) -> Dict:
         "matched_keywords": matches,
         "match_percentage": round((matches / len(job_keywords)) * 100 if job_keywords else 0, 2)
     }
-
 
 def create_cover_letter_prompt() -> ChatPromptTemplate:
     """
@@ -291,6 +278,7 @@ def generate_cover_letter(job_description: str, optimized_resume: str, llm: Olla
     )
     
     return cover_letter
+
 def generate_resume(job_description: str, current_resume: List[Document], llm: Ollama) -> tuple:
     """
     Generates an optimized resume with additional relevant keywords and provides analysis metrics.
@@ -323,13 +311,7 @@ def generate_resume(job_description: str, current_resume: List[Document], llm: O
     
     return response, combined_analysis
 
-# def app():
-st.set_page_config(
-    page_title="Advanced Resume Optimizer",
-    page_icon="📄",
-    layout="wide"
-)
-
+# Main Streamlit UI
 st.title("🚀 Advanced Resume Optimizer")
 st.markdown("""
 This tool uses AI to create ATS-optimized resumes tailored to specific job descriptions.
@@ -356,7 +338,6 @@ with st.container():
 if job_description and uploaded_file:
     try:
         with st.spinner("🔄 Analyzing and optimizing your resume..."):
-           
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
                 tmp_file.write(uploaded_file.getvalue())
                 tmp_path = tmp_file.name
@@ -372,7 +353,6 @@ if job_description and uploaded_file:
             split_docs = text_splitter.split_documents(documents=docs)
 
             if split_docs:
-               
                 llm = Ollama(model="llama3.2")
                 
                 optimized_resume, combined_analysis = generate_resume(
@@ -389,8 +369,7 @@ if job_description and uploaded_file:
                     st.markdown("**Original Metrics**")
                     st.metric(
                         "Initial Keyword Match Rate",
-                        f"{combined_analysis['original_metrics']['match_percentage']}%"
-                    )
+                        f"{combined_analysis['original_metrics']['match_percentage']}%")
                     st.metric(
                         "Initial Keywords Matched",
                         combined_analysis['original_metrics']['matched_keywords']
@@ -456,5 +435,5 @@ if job_description and uploaded_file:
 else:
     st.info("👆 Please provide both the job description and your current resume to begin optimization.")
 
-#if __name__ == "__main__":
- #   app()
+if __name__ == "__main__":
+    pass  # The Streamlit commands are now at the module level
