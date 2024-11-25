@@ -323,138 +323,138 @@ def generate_resume(job_description: str, current_resume: List[Document], llm: O
     
     return response, combined_analysis
 
-def app():
-    st.set_page_config(
-        page_title="Advanced Resume Optimizer",
-        page_icon="📄",
-        layout="wide"
-    )
+# def app():
+st.set_page_config(
+    page_title="Advanced Resume Optimizer",
+    page_icon="📄",
+    layout="wide"
+)
+
+st.title("🚀 Advanced Resume Optimizer")
+st.markdown("""
+This tool uses AI to create ATS-optimized resumes tailored to specific job descriptions.
+Upload your current resume and paste the job description to get started.
+""")
+
+with st.container():
+    col1, col2 = st.columns(2)
     
-    st.title("🚀 Advanced Resume Optimizer")
-    st.markdown("""
-    This tool uses AI to create ATS-optimized resumes tailored to specific job descriptions.
-    Upload your current resume and paste the job description to get started.
-    """)
-
-    with st.container():
-        col1, col2 = st.columns(2)
+    with col1:
+        job_description = st.text_area(
+            "Job Description",
+            height=300,
+            placeholder="Paste the job description here..."
+        )
         
-        with col1:
-            job_description = st.text_area(
-                "Job Description",
-                height=300,
-                placeholder="Paste the job description here..."
-            )
-            
-        with col2:
-            uploaded_file = st.file_uploader(
-                "Upload Current Resume (PDF)",
-                type="pdf",
-                help="Upload your current resume in PDF format"
-            )
+    with col2:
+        uploaded_file = st.file_uploader(
+            "Upload Current Resume (PDF)",
+            type="pdf",
+            help="Upload your current resume in PDF format"
+        )
 
-    if job_description and uploaded_file:
-        try:
-            with st.spinner("🔄 Analyzing and optimizing your resume..."):
+if job_description and uploaded_file:
+    try:
+        with st.spinner("🔄 Analyzing and optimizing your resume..."):
+           
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+                tmp_file.write(uploaded_file.getvalue())
+                tmp_path = tmp_file.name
+
+            loader = PyPDFLoader(tmp_path)
+            docs = loader.load()
+
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=100,
+                separators=["\n\n", "\n", " ", ""]
+            )
+            split_docs = text_splitter.split_documents(documents=docs)
+
+            if split_docs:
                
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-                    tmp_file.write(uploaded_file.getvalue())
-                    tmp_path = tmp_file.name
-
-                loader = PyPDFLoader(tmp_path)
-                docs = loader.load()
-
-                text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1000,
-                    chunk_overlap=100,
-                    separators=["\n\n", "\n", " ", ""]
+                llm = Ollama(model="llama3.2")
+                
+                optimized_resume, combined_analysis = generate_resume(
+                    job_description, split_docs, llm
                 )
-                split_docs = text_splitter.split_documents(documents=docs)
 
-                if split_docs:
-                   
-                    llm = Ollama(model="llama3.2")
-                    
-                    optimized_resume, combined_analysis = generate_resume(
-                        job_description, split_docs, llm
+                st.success("✅ Resume optimization complete!")
+                
+                st.markdown("### 📊 Optimization Metrics")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**Original Metrics**")
+                    st.metric(
+                        "Initial Keyword Match Rate",
+                        f"{combined_analysis['original_metrics']['match_percentage']}%"
                     )
-
-                    st.success("✅ Resume optimization complete!")
-                    
-                    st.markdown("### 📊 Optimization Metrics")
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("**Original Metrics**")
-                        st.metric(
-                            "Initial Keyword Match Rate",
-                            f"{combined_analysis['original_metrics']['match_percentage']}%"
-                        )
-                        st.metric(
-                            "Initial Keywords Matched",
-                            combined_analysis['original_metrics']['matched_keywords']
-                        )
-                    
-                    with col2:
-                        st.markdown("**Final Metrics**")
-                        st.metric(
-                            "Final Keyword Match Rate",
-                            f"{combined_analysis['final_metrics']['match_percentage']}%"
-                        )
-                        st.metric(
-                            "Final Keywords Matched",
-                            combined_analysis['final_metrics']['matched_keywords']
-                        )
-                    
-                    st.markdown("### 🔑 Top 22 Keywords from Job Description")
-                    st.write(", ".join(combined_analysis["top_22_keywords"]))
-                    
-                    st.markdown("### 🌟 Additional 10 Suggested Keywords")
-                    st.write(", ".join(combined_analysis["additional_10_keywords"]))
-                    
-                    st.markdown("### 📄 Optimized Resume")
-                    st.markdown(optimized_resume)
-
-                    st.download_button(
-                        "📥 Download Optimized Resume",
-                        optimized_resume,
-                        file_name="optimized_resume.txt",
-                        mime="text/plain"
+                    st.metric(
+                        "Initial Keywords Matched",
+                        combined_analysis['original_metrics']['matched_keywords']
                     )
+                
+                with col2:
+                    st.markdown("**Final Metrics**")
+                    st.metric(
+                        "Final Keyword Match Rate",
+                        f"{combined_analysis['final_metrics']['match_percentage']}%"
+                    )
+                    st.metric(
+                        "Final Keywords Matched",
+                        combined_analysis['final_metrics']['matched_keywords']
+                    )
+                
+                st.markdown("### 🔑 Top 22 Keywords from Job Description")
+                st.write(", ".join(combined_analysis["top_22_keywords"]))
+                
+                st.markdown("### 🌟 Additional 10 Suggested Keywords")
+                st.write(", ".join(combined_analysis["additional_10_keywords"]))
+                
+                st.markdown("### 📄 Optimized Resume")
+                st.markdown(optimized_resume)
 
-                    st.markdown("### 📝 Cover Letter Generation")
-                    generate_cover = st.checkbox("Would you like to generate a matching cover letter?")
-                    
-                    if generate_cover:
-                        with st.spinner("🔄 Generating your cover letter..."):
-                            cover_letter = generate_cover_letter(
-                                job_description, 
-                                optimized_resume,
-                                llm
-                            )
-                            
-                            st.markdown("### 📋 Generated Cover Letter")
-                            st.markdown(cover_letter)
-                            
-                            st.download_button(
-                                "📥 Download Cover Letter",
-                                cover_letter,
-                                file_name="cover_letter.txt",
-                                mime="text/plain"
-                            )
+                st.download_button(
+                    "📥 Download Optimized Resume",
+                    optimized_resume,
+                    file_name="optimized_resume.txt",
+                    mime="text/plain"
+                )
 
-                else:
-                    st.error("❌ Could not extract text from the uploaded resume.")
+                st.markdown("### 📝 Cover Letter Generation")
+                generate_cover = st.checkbox("Would you like to generate a matching cover letter?")
+                
+                if generate_cover:
+                    with st.spinner("🔄 Generating your cover letter..."):
+                        cover_letter = generate_cover_letter(
+                            job_description, 
+                            optimized_resume,
+                            llm
+                        )
+                        
+                        st.markdown("### 📋 Generated Cover Letter")
+                        st.markdown(cover_letter)
+                        
+                        st.download_button(
+                            "📥 Download Cover Letter",
+                            cover_letter,
+                            file_name="cover_letter.txt",
+                            mime="text/plain"
+                        )
 
-                os.unlink(tmp_path)
+            else:
+                st.error("❌ Could not extract text from the uploaded resume.")
 
-        except Exception as e:
-            st.error(f"❌ An error occurred: {str(e)}")
-            st.info("Please try again with a different PDF file or check the job description format.")
+            os.unlink(tmp_path)
 
-    else:
-        st.info("👆 Please provide both the job description and your current resume to begin optimization.")
+    except Exception as e:
+        st.error(f"❌ An error occurred: {str(e)}")
+        st.info("Please try again with a different PDF file or check the job description format.")
 
-if __name__ == "__main__":
-    app()
+else:
+    st.info("👆 Please provide both the job description and your current resume to begin optimization.")
+
+#if __name__ == "__main__":
+ #   app()
