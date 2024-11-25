@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import tempfile
 from typing import List, Dict
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_community.llms import Ollama
+from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -25,8 +25,11 @@ load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Custom_Resume_With_GenAI"
 os.environ["LANGCHAIN_API_KEY"] = "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"
+os.environ["GROQ_API_KEY"] = "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"
 
-def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: Ollama) -> Dict:
+
+
+def extract_and_suggest_keywords(job_description: str, resume_text: str, llm: ChatGroq) -> Dict:
     """
     Analyzes existing keywords and suggests additional relevant ones.
     """
@@ -265,7 +268,7 @@ def create_cover_letter_prompt() -> ChatPromptTemplate:
         Generate a compelling cover letter.""")
     ])
 
-def generate_cover_letter(job_description: str, optimized_resume: str, llm: Ollama) -> str:
+def generate_cover_letter(job_description: str, optimized_resume: str, llm: ChatGroq) -> str:
     """
     Generates a customized cover letter based on the job description and optimized resume.
     """
@@ -279,7 +282,7 @@ def generate_cover_letter(job_description: str, optimized_resume: str, llm: Olla
     
     return cover_letter
 
-def generate_resume(job_description: str, current_resume: List[Document], llm: Ollama) -> tuple:
+def generate_resume(job_description: str, current_resume: List[Document], llm: ChatGroq) -> tuple:
     """
     Generates an optimized resume with additional relevant keywords and provides analysis metrics.
     """
@@ -353,7 +356,7 @@ if job_description and uploaded_file:
             split_docs = text_splitter.split_documents(documents=docs)
 
             if split_docs:
-                llm = Ollama(model="llama3.2")
+                llm = ChatGroq(model='Llama3-8b-8192')
                 
                 optimized_resume, combined_analysis = generate_resume(
                     job_description, split_docs, llm
@@ -436,4 +439,4 @@ else:
     st.info("👆 Please provide both the job description and your current resume to begin optimization.")
 
 if __name__ == "__main__":
-    pass  # The Streamlit commands are now at the module level
+    pass  
