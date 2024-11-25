@@ -11,4 +11,4 @@ streamlit
 langchain_core
 chroma
 langchain_chroma
-
+langchain_groq
