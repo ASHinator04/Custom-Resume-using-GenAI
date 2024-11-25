@@ -1,3 +1,13 @@
+---
+license: mit
+title: Cumstomized Resume Builder
+sdk: streamlit
+emoji: 📈
+colorFrom: yellow
+colorTo: red
+pinned: true
+---
+
 # AI-Powered Resume Optimizer 🚀
 
 An advanced resume optimization tool that uses AI to create ATS-optimized resumes and cover letters tailored to specific job descriptions. Built with Streamlit and LangChain, this application helps job seekers improve their resume's compatibility with Applicant Tracking Systems (ATS).
