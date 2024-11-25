@@ -7,6 +7,10 @@ colorFrom: yellow
 colorTo: red
 pinned: true
 ---
+# FFA Key If you dont have one
+If You Dont have a Groq API key then i have created a Free For All groq key so that anyone can use this project. But its recommended to use your own key.
+
+```"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"```
 
 # AI-Powered Resume Optimizer 🚀
 
@@ -26,54 +30,29 @@ An advanced resume optimization tool that uses AI to create ATS-optimized resume
 - Python 3.x
 - Streamlit
 - LangChain
-- Ollama (LLama3.2)
+- Groq (LLama3)
 - PyPDF2
 - python-dotenv
 
-## Installation 🛠️
+# USAGE 📝
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/resume-optimizer.git
-cd resume-optimizer
-```
+To use the Deployed Version of Custom Resume Builder visit [https://huggingface.co/spaces/AAkshatSharmaa/customizeyourresume].
 
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-```
+1. Use the Groq API key if you dont have one then I have provided one for you
+   
+```"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"```
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Create a `.env` file with your credentials:
-```env
-LANGCHAIN_API_KEY=your_api_key_here
-LANGCHAIN_TRACING_V2=true
-LANGCHAIN_PROJECT=Custom_Resume_With_GenAI
-```
-
-## Usage 📝
-
-1. Start the Streamlit app:
-```bash
-streamlit run app.py
-```
-
-2. Open your browser and navigate to `http://localhost:8501`
+2. Paste the job description
 
 3. Upload your current resume (PDF format)
 
-4. Paste the job description
+4. Click to generate your optimized resume
 
-5. Click to generate your optimized resume
+5. Optionally generate a matching cover letter
 
-6. Optionally generate a matching cover letter
+5. Download your optimized documents
 
-7. Download your optimized documents
+6. Or Copy the desired points given by the application to your custom resume
 
 ## Core Components 🔧
 
@@ -120,12 +99,7 @@ resume-optimizer/
 ## Requirements 📋
 
 ```txt
-streamlit
-langchain
-langchain-community
-python-dotenv
-PyPDF2
-ollama
+Check the updated requirements.txt
 ```
 
 ## License 📄
@@ -134,13 +108,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support 💬
 
-For support, please open an issue in the GitHub repository or contact [your-email@example.com].
+For support, please open an issue in the GitHub repository or contact [sharma.akshat0410@gmail.com] or at [https://www.linkedin.com/in/impact-by-akshat-sharma/].
 
 ## Acknowledgments 🙏
 
 - LangChain for the excellent LLM framework
 - Streamlit for the amazing web interface
-- Ollama for providing the LLM capabilities
+- Groq for providing the LLM capabilities
 
 ## Note ⚠️
 
