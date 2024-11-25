@@ -8,6 +8,7 @@ colorTo: red
 pinned: true
 ---
 # FFA Key If you dont have one
+To use the Deployed Version of Custom Resume Builder visit https://huggingface.co/spaces/AAkshatSharmaa/customizeyourresume.
 If You Dont have a Groq API key then i have created a Free For All groq key so that anyone can use this project. But its recommended to use your own key.
 
 ```"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"```
