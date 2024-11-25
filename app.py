@@ -26,7 +26,7 @@ os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Custom_Resume_With_GenAI"
 os.environ["LANGCHAIN_API_KEY"] = "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"
 
-GROQ_API_KEY = st.text_input(label='Enter GROQ_API_KEY here', type='password')
+GROQ_API_KEY = st.text_input(label='Enter GROQ_API_KEY here (or the one I provided you)', type='password')
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
 
